@@ -11,8 +11,10 @@ import org.nocrala.tools.gis.data.esri.shapefile.shape.AbstractShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.PointData;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.MultiPointPlainShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PointShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PointZShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineZShape;
 import org.osmdroid.api.IMapView;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
@@ -82,6 +84,16 @@ public class ShapeConverter {
                         folder.add(m);
                     }
                     break;
+                    case POINT_Z: {
+                        PointZShape aPoint = (PointZShape) s;
+                        Marker m = new Marker(map);
+                        m.setPosition(fixOutOfRange(new GeoPoint(aPoint.getY(), aPoint.getX())));
+
+                        shapeMetaSetter.set(metadata, m);
+
+                        folder.add(m);
+                    }
+                    break;
 
                     case POLYGON: {
                         PolygonShape aPolygon = (PolygonShape) s;
@@ -129,7 +141,27 @@ public class ShapeConverter {
                         }
                     }
                     break;
+                    case POLYLINE_Z: {
+                        PolylineZShape polylineShape = (PolylineZShape) s;
+                        for (int i = 0; i < polylineShape.getNumberOfParts(); i++) {
+                            Polyline line = new Polyline(map);
 
+                            PointData[] points = polylineShape.getPointsOfPart(i);
+                            List<GeoPoint> pts = new ArrayList<>();
+
+                            for (PointData p : points) {
+                                GeoPoint pt = fixOutOfRange(new GeoPoint(p.getY(), p.getX()));
+                                pts.add(pt);
+                            }
+
+                            line.setPoints(pts);
+
+                            shapeMetaSetter.set(metadata, line);
+
+                            folder.add(line);
+                        }
+                    }
+                    break;
                     case MULTIPOINT: {
                         MultiPointPlainShape aPoint = (MultiPointPlainShape) s;
 
